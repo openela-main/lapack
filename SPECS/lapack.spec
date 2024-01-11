@@ -10,7 +10,7 @@
 Summary: Numerical linear algebra package libraries
 Name: lapack
 Version: %{mediumver}.0
-Release: 8%{?dist}
+Release: 10%{?dist}
 License: BSD
 URL: http://www.netlib.org/lapack/
 Source0: https://github.com/Reference-LAPACK/lapack/archive/v%{version}.tar.gz
@@ -52,13 +52,6 @@ provides a number of basic algorithms for numerical algebra.
 
 %description %_description_lapack
 
-%package devel
-Summary: LAPACK development libraries
-Requires: %{name}%{?_isa} = %{version}-%{release}
-Requires: blas-devel%{?_isa} = %{version}-%{release}
-
-%description devel
-LAPACK development libraries (shared).
 
 %package static
 Summary: LAPACK static libraries
@@ -72,13 +65,6 @@ Summary: The Basic Linear Algebra Subprograms library
 
 %description -n blas %_description_blas
 
-%package -n blas-devel
-Summary: BLAS development libraries
-Requires: blas%{?_isa} = %{version}-%{release}
-Requires: gcc-gfortran
-
-%description -n blas-devel
-BLAS development libraries (shared).
 
 %package -n blas-static
 Summary: BLAS static libraries
@@ -88,6 +74,16 @@ Requires: blas-devel%{?_isa} = %{version}-%{release}
 BLAS static libraries.
 
 %if 0%{?arch64}
+%package devel
+Summary: LAPACK development libraries
+Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: %{name}64%{?_isa} = %{version}-%{release}
+Requires: %{name}64_%{?_isa} = %{version}-%{release}
+Requires: blas-devel%{?_isa} = %{version}-%{release}
+
+%description devel
+LAPACK development libraries (shared).
+
 %package -n lapack64
 Summary: Numerical linear algebra package libraries
 Requires: blas64%{?_isa} = %{version}-%{release}
@@ -113,6 +109,32 @@ Summary: The Basic Linear Algebra Subprograms library (64bit INTEGER)
 
 %description -n blas64_ %_description_blas
 This build has 64bit INTEGER support and a symbol name suffix.
+
+%package -n blas-devel
+Summary: BLAS development libraries
+Requires: blas%{?_isa} = %{version}-%{release}
+Requires: blas64%{?_isa} = %{version}-%{release}
+Requires: blas64_%{?_isa} = %{version}-%{release}
+Requires: gcc-gfortran
+
+%description -n blas-devel
+BLAS development libraries (shared).
+%else
+%package devel
+Summary: LAPACK development libraries
+Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: blas-devel%{?_isa} = %{version}-%{release}
+
+%description devel
+LAPACK development libraries (shared).
+
+%package -n blas-devel
+Summary: BLAS development libraries
+Requires: blas%{?_isa} = %{version}-%{release}
+Requires: gcc-gfortran
+
+%description -n blas-devel
+BLAS development libraries (shared).
 %endif
 
 %prep
@@ -414,6 +436,12 @@ pushd manpages/man/man3
 rm -rf _Users_julie*
 popd
 
+#rhbz#2222868
+pushd manpages/man/man3
+mv MAX.3 lapack-MAX.3
+mv MIN.3 lapack-MIN.3
+popd 
+
 find manpages/man/man3 -type f -printf "%{_mandir}/man3/%f*\n" > lapackmans
 
 cp -f manpages/blas/man/man3/* ${RPM_BUILD_ROOT}%{_mandir}/man3
@@ -597,6 +625,14 @@ sed -i 's|Requires.private: blas|Requires.private: blas64_|g' %{buildroot}%{_lib
 %endif
 
 %changelog
+* Fri Aug 11 2023 Jakub Martisko <jamartis@redhat.com> - 3.9.0-10
+- Add explicit requires to the devel subpackages
+  Related: rhbz#2229142
+
+* Tue Jul 18 2023 Jakub Martisko <jamartis@redhat.com> - 3.9.0-9
+- Rename manpages: some names conflict with the man-pages package
+  Resolves: rhbz#2222868
+
 * Mon Aug 09 2021 Mohan Boddu <mboddu@redhat.com> - 3.9.0-8
 - Rebuilt for IMA sigs, glibc 2.34, aarch64 flags
   Related: rhbz#1991688
