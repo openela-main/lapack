@@ -76,11 +76,13 @@ ifeq "$(SYMBOLSUFFIX)" ""
 else
 	ar ruv libcblas$(SYMBOLSUFFIX).a $(OBJS)
 	ranlib libcblas$(SYMBOLSUFFIX).a
+ifndef RENAMEONLY
 	for i in `nm libcblas$(SYMBOLSUFFIX).a |grep " T " | awk '{print $$3}'`; do echo "$$i" "64_$$i"; done > cblas-static-prefix.def.dirty
 	sort -n cblas-static-prefix.def.dirty | uniq > cblas-static-prefix.def
 	$(OBJCOPY) --redefine-syms cblas-static-prefix.def libcblas$(SYMBOLSUFFIX).a libcblas$(SYMBOLSUFFIX).a.fixed
 	rm -rf libcblas$(SYMBOLSUFFIX).a
 	mv libcblas$(SYMBOLSUFFIX).a.fixed libcblas$(SYMBOLSUFFIX).a
+endif
 endif
 
 shared: $(OBJS)
@@ -89,6 +91,7 @@ ifeq "$(SYMBOLSUFFIX)" ""
 	cc $(CFLAGS) -shared -Wl,-soname,libcblas.so.@SHORTVER@ -o libcblas.so.@LONGVER@ $(OBJS) $(LDFLAGS) -L../../ -lblas -lm -lgfortran -lc
 else
 	cc $(CFLAGS) -shared -Wl,-soname,libcblas$(SYMBOLSUFFIX).so.@SHORTVER@ -o libcblas$(SYMBOLSUFFIX).so.@LONGVER@ $(OBJS) $(LDFLAGS) -L../.. -lblas -lm -lgfortran -lc
+ifndef RENAMEONLY
 	# generate a list of all symbols in shared library and rename with SYMBOLSUFFIX
 	for i in `readelf -Ws libcblas$(SYMBOLSUFFIX).so.@LONGVER@ | awk '{print $$8}' | grep -v GLIBC |grep -v GFORTRAN |grep -v "Name" `; do echo "$$i" "64_$$i"; done > cblas-prefix.def.dirty
 	sort -n cblas-prefix.def.dirty | uniq > cblas-prefix.def
@@ -96,4 +99,4 @@ else
 	rm -rf libcblas$(SYMBOLSUFFIX).so.@LONGVER@
 	mv libcblas$(SYMBOLSUFFIX).so.@LONGVER@.fixed libcblas$(SYMBOLSUFFIX).so.@LONGVER@
 endif
-
+endif

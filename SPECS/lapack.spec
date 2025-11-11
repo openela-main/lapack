@@ -10,8 +10,8 @@
 Summary: Numerical linear algebra package libraries
 Name: lapack
 Version: %{mediumver}.0
-Release: 10%{?dist}
-License: BSD
+Release: 13%{?dist}
+License: BSD-3-Clause-Open-MPI
 URL: http://www.netlib.org/lapack/
 Source0: https://github.com/Reference-LAPACK/lapack/archive/v%{version}.tar.gz
 Source1: http://www.netlib.org/lapack/manpages.tgz
@@ -22,8 +22,6 @@ Source5: http://www.netlib.org/blas/blasqr.ps
 Source6: Makefile.cblas
 Patch3: lapack-3.9.0-make.inc.patch
 Patch4: lapack-3.9.0-lapacke-shared.patch
-Patch5: lapack-3.4.1-lapacke-disable-testing-functions.patch
-Patch6: lapack-3.5.0-lapacke-matgenobj.patch
 Patch7: lapack-3.9.0-lapacke-tmglib.patch
 # Bugzilla 1814756
 Patch8: https://github.com/Reference-LAPACK/lapack/commit/87536aa3c8bb0af00f66088fb6ac05d87509e011.patch
@@ -87,12 +85,14 @@ LAPACK development libraries (shared).
 %package -n lapack64
 Summary: Numerical linear algebra package libraries
 Requires: blas64%{?_isa} = %{version}-%{release}
+Requires: blas%{?_isa} = %{version}-%{release}
 
 %description -n lapack64 %_description_lapack
 This build has 64bit INTEGER support.
 
 %package -n blas64
 Summary: The Basic Linear Algebra Subprograms library (64bit INTEGER)
+Requires: blas%{?_isa} = %{version}-%{release}
 
 %description -n blas64 %_description_blas
 This build has 64bit INTEGER support.
@@ -100,12 +100,14 @@ This build has 64bit INTEGER support.
 %package -n lapack64_
 Summary: Numerical linear algebra package libraries
 Requires: blas64_%{?_isa} = %{version}-%{release}
+Requires: blas%{?_isa} = %{version}-%{release}
 
 %description -n lapack64_ %_description_lapack
 This build has 64bit INTEGER support and a symbol name suffix.
 
 %package -n blas64_
 Summary: The Basic Linear Algebra Subprograms library (64bit INTEGER)
+Requires: blas%{?_isa} = %{version}-%{release}
 
 %description -n blas64_ %_description_blas
 This build has 64bit INTEGER support and a symbol name suffix.
@@ -142,8 +144,6 @@ BLAS development libraries (shared).
 %setup -q -D -T -a1
 %patch3 -p1 -b .fedora
 %patch4 -p1 -b .shared
-# %patch5 -p1 -b .disable-functions
-# %patch6 -p1 -b .matgenobj
 %patch7 -p1 -b .tmglib
 %patch8 -p1 -b .bz1814756
 
@@ -181,12 +181,12 @@ cp libblas.so.%{version} ${RPM_BUILD_DIR}/%{name}-%{version}/
 %if 0%{?arch64}
 make clean
 FFLAGS="$RPM_OPT_O_FLAGS -fdefault-integer-8" make dcabs1.o
-FFLAGS="$RPM_OPT_FLAGS -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS" make static
-cp libblas.a ${RPM_BUILD_DIR}/%{name}-%{version}/libblas64.a
+SYMBOLSUFFIX="64" RENAMEONLY=1 FFLAGS="$RPM_OPT_FLAGS -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS" make static
+cp libblas64.a ${RPM_BUILD_DIR}/%{name}-%{version}/libblas64.a
 make clean
 FFLAGS="$RPM_OPT_O_FLAGS -fPIC -fdefault-integer-8" make dcabs1.o
-FFLAGS="$RPM_OPT_FLAGS -fPIC -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS -fPIC" LDFLAGS="%{build_ldflags}" make shared
-cp libblas.so.%{version} ${RPM_BUILD_DIR}/%{name}-%{version}/libblas64.so.%{version}
+SYMBOLSUFFIX="64" RENAMEONLY=1 FFLAGS="$RPM_OPT_FLAGS -fPIC -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS -fPIC" LDFLAGS="%{build_ldflags}" make shared
+cp libblas64.so.%{version} ${RPM_BUILD_DIR}/%{name}-%{version}/libblas64.so.%{version}
 make clean
 FFLAGS="$RPM_OPT_O_FLAGS -fdefault-integer-8" make dcabs1.o
 SYMBOLSUFFIX="64_" FFLAGS="$RPM_OPT_FLAGS -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS" make static
@@ -214,11 +214,11 @@ FFLAGS="$RPM_OPT_FLAGS -fPIC" CFLAGS="$RPM_OPT_FLAGS -fPIC -I../include" LDFLAGS
 cp libcblas.so.%{version} ${RPM_BUILD_DIR}/%{name}-%{version}/
 %if 0%{?arch64}
 make clean
-FFLAGS="$RPM_OPT_FLAGS -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS -I../include" make static
-cp libcblas.a ${RPM_BUILD_DIR}/%{name}-%{version}/libcblas64.a
+SYMBOLSUFFIX="64" RENAMEONLY=1 FFLAGS="$RPM_OPT_FLAGS -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS -I../include" make static
+cp libcblas64.a ${RPM_BUILD_DIR}/%{name}-%{version}/libcblas64.a
 make clean
-FFLAGS="$RPM_OPT_FLAGS -fPIC -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS -fPIC -I../include" LDFLAGS="%{build_ldflags}" make shared
-cp libcblas.so.%{version} ${RPM_BUILD_DIR}/%{name}-%{version}/libcblas64.so.%{version}
+SYMBOLSUFFIX="64" RENAMEONLY=1 FFLAGS="$RPM_OPT_FLAGS -fPIC -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS -fPIC -I../include" LDFLAGS="%{build_ldflags}" make shared
+cp libcblas64.so.%{version} ${RPM_BUILD_DIR}/%{name}-%{version}/libcblas64.so.%{version}
 make clean
 SYMBOLSUFFIX="64_" FFLAGS="$RPM_OPT_FLAGS -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS -I../include" make static
 cp libcblas64_.a ${RPM_BUILD_DIR}/%{name}-%{version}/libcblas64_.a
@@ -268,8 +268,8 @@ popd
 # Build the static lapack library
 pushd SRC
 make clean
-make FFLAGS="$RPM_OPT_FLAGS -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS" static
-cp liblapack.a ${RPM_BUILD_DIR}/%{name}-%{version}/liblapack64.a
+make SYMBOLSUFFIX="64" RENAMEONLY=1 FFLAGS="$RPM_OPT_FLAGS -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS" static
+cp liblapack64.a ${RPM_BUILD_DIR}/%{name}-%{version}/liblapack64.a
 popd
 
 # Build the static with pic dlamch, dsecnd, lsame, second, slamch bits (64bit INTEGER)
@@ -281,8 +281,8 @@ popd
 # Build the static with pic lapack library (64bit INTEGER)
 pushd SRC
 make clean
-make FFLAGS="$RPM_OPT_FLAGS -fPIC -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS -fPIC" static
-cp liblapack.a ${RPM_BUILD_DIR}/%{name}-%{version}/liblapack_pic64.a
+make SYMBOLSUFFIX="64" RENAMEONLY=1 FFLAGS="$RPM_OPT_FLAGS -fPIC -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS -fPIC" static
+cp liblapack64.a ${RPM_BUILD_DIR}/%{name}-%{version}/liblapack_pic64.a
 popd
 
 # Build the static dlamch, dsecnd, lsame, second, slamch bits
@@ -335,8 +335,8 @@ popd
 # Build the shared lapack library
 pushd SRC
 make clean
-make FFLAGS="$RPM_OPT_FLAGS -fPIC -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS -fPIC -fdefault-integer-8" LDFLAGS="%{build_ldflags}" shared
-cp liblapack.so.%{version} ${RPM_BUILD_DIR}/%{name}-%{version}/liblapack64.so.%{version}
+make SYMBOLSUFFIX="64" RENAMEONLY=1 FFLAGS="$RPM_OPT_FLAGS -fPIC -fdefault-integer-8" CFLAGS="$RPM_OPT_FLAGS -fPIC -fdefault-integer-8" LDFLAGS="%{build_ldflags}" shared
+cp liblapack64.so.%{version} ${RPM_BUILD_DIR}/%{name}-%{version}/liblapack64.so.%{version}
 popd
 
 # Build the shared dlamch, dsecnd, lsame, second, slamch bits
@@ -625,6 +625,21 @@ sed -i 's|Requires.private: blas|Requires.private: blas64_|g' %{buildroot}%{_lib
 %endif
 
 %changelog
+* Thu Jul 17 2025 Jakub Martisko <jamartis@redhat.com> - 3.9.0-13
+- Add explicit requires to the devel subpackages
+- Note: the the cblas64 seems to be linked against the libblas (not the 64 version)
+- this is not a regression, however in the Fedora it uses libblas64 instead.
+- Resolves: RHEL-5768
+
+* Wed Jul 16 2025 Jakub Martisko <jamartis@redhat.com> - 3.9.0-12
+- Spec file cleanup
+- Remove unused patches
+  Related: RHEL-5770
+
+* Wed Oct 23 2024 Takuya Wakazono <takuya.wakazono@miraclelinux.com> - 3.9.0-11
+- Fix soname of the 64-bit version libraries
+  Resolves: RHEL-24851
+
 * Fri Aug 11 2023 Jakub Martisko <jamartis@redhat.com> - 3.9.0-10
 - Add explicit requires to the devel subpackages
   Related: rhbz#2229142

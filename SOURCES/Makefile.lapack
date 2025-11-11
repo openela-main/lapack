@@ -456,11 +456,13 @@ ifeq "$(SYMBOLSUFFIX)" ""
 else
 	ar ruv liblapack$(SYMBOLSUFFIX).a $(ALLOBJ) $(ALLXOBJ)
 	ranlib liblapack$(SYMBOLSUFFIX).a
+ifndef RENAMEONLY
 	for i in `nm liblapack$(SYMBOLSUFFIX).a |grep " T " | awk '{print $$3}'`; do echo "$$i" "64_$$i"; done > lapack-static-prefix.def.dirty
 	sort -n lapack-static-prefix.def.dirty | uniq > lapack-static-prefix.def
 	$(OBJCOPY) --redefine-syms lapack-static-prefix.def liblapack$(SYMBOLSUFFIX).a liblapack$(SYMBOLSUFFIX).a.fixed
 	rm -rf liblapack$(SYMBOLSUFFIX).a
 	mv liblapack$(SYMBOLSUFFIX).a.fixed liblapack$(SYMBOLSUFFIX).a
+endif
 endif
 
 shared: $(ALLOBJ) $(ALLXOBJ)
@@ -469,10 +471,12 @@ ifeq "$(SYMBOLSUFFIX)" ""
 	cc $(CFLAGS) -shared -Wl,-soname,liblapack.so.@SHORTVER@ -o liblapack.so.@LONGVER@ $(ALLOBJ) $(ALLXOBJ) $(LDFLAGS) -L.. -lblas -lm -lgfortran -lc
 else
 	cc $(CFLAGS) -shared -Wl,-soname,liblapack$(SYMBOLSUFFIX).so.@SHORTVER@ -o liblapack$(SYMBOLSUFFIX).so.@LONGVER@ $(ALLOBJ) $(ALLXOBJ) $(LDFLAGS) -L.. -lblas -lm -lgfortran -lc
+ifndef RENAMEONLY
 	# generate a list of all symbols in shared library and rename with SYMBOLSUFFIX
 	for i in `readelf -Ws liblapack$(SYMBOLSUFFIX).so.@LONGVER@ | awk '{print $$8}' | grep -v GLIBC |grep -v GFORTRAN |grep -v "Name" `; do echo "$$i" "64_$$i"; done > lapack-prefix.def.dirty
 	sort -n lapack-prefix.def.dirty | uniq > lapack-prefix.def
 	$(OBJCOPY) --redefine-syms lapack-prefix.def liblapack$(SYMBOLSUFFIX).so.@LONGVER@ liblapack$(SYMBOLSUFFIX).so.@LONGVER@.fixed
 	rm -rf liblapack$(SYMBOLSUFFIX).so.@LONGVER@
 	mv liblapack$(SYMBOLSUFFIX).so.@LONGVER@.fixed liblapack$(SYMBOLSUFFIX).so.@LONGVER@
+endif
 endif
