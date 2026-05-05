@@ -14,7 +14,7 @@ diff -up lapack-3.7.1/LAPACKE/Makefile.shared lapack-3.7.1/LAPACKE/Makefile
  	cp $< $@
  
 +shlib: lapacke
-+	$(CC) $(CFLAGS) -shared -Wl,-soname,$(SHLIB_LAPACKE).@SHORTVER@ -o $(SHLIB_LAPACKE).@LONGVER@ src/*.o utils/*.o $(LDFLAGS) $(LIBS) -lgfortran -lc
++	$(CC) $(CFLAGS) -shared -Wl,-soname,$(SHLIB_LAPACKE).@SHORTVER@ -o $(SHLIB_LAPACKE).@LONGVER@ src/*.o utils/*.o $(LDFLAGS) $(LIBS) -lgfortran -lc -L.. -llapack
 +
  lapacke_example: lapacke
  	$(MAKE) -C example

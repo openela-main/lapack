@@ -10,7 +10,7 @@
 Summary: Numerical linear algebra package libraries
 Name: lapack
 Version: %{mediumver}.0
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: BSD
 Group: System Environment/Libraries
 URL: http://www.netlib.org/lapack/
@@ -542,6 +542,11 @@ sed -i 's|Requires.private: blas|Requires.private: blas64|g' %{buildroot}%{_libd
 %endif
 
 %changelog
+* Thu Feb 19 2026 Jakub Martisko <jamartis@redhat.com> - 3.8.0-9
+- explicitly link liblapacke.so with liblapack to remove undefined-non-weak-symbols
+- Ported from Fedora (original patch by Tom Callaway)
+Resolves: RHEL-121218
+
 * Mon Mar  5 2018 Tom Callaway <spot@fedoraproject.org> - 3.8.0-8
 - use LDFLAGS for shared libs
 
